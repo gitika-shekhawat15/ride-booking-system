@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import VideoBackground from "../../components/VideoBackground";
+import ImageBackground from "../../components/ImageBackground";
 import {getProfile, updateProfile} from "../../services/auth.service";
 
 function RiderProfile() {
@@ -19,7 +19,7 @@ function RiderProfile() {
   });
  
   const [errors, setErrors] = useState({});
-  const [showToast, setShowToast] = useState(false); // ✅ toast conflict fix
+  const [showToast, setShowToast] = useState(false); 
   const [loading, setLoading] = useState(true);
  
   // useEffect — getProfile service use
@@ -63,7 +63,7 @@ function RiderProfile() {
     return errs;
   };
  
-  // ✅ updateProfile service use
+  //updateProfile service use
   const handleSave = async () => {
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -96,22 +96,22 @@ function RiderProfile() {
   };
  
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("token");
     navigate("/login");
-  };
+};
  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <VideoBackground />
+        <ImageBackground />
         <div className="text-white text-sm opacity-60">Loading...</div>
       </div>
     );
   }
  
   return (
-    <div className="h-screen overflow-hidden text-white items-center flex flex-col px-4 pt-30 pb-10 relative">
-      <VideoBackground />
+    <div className="h-screen overflow-hidden text-white items-center flex flex-col px-6 pt-25 md:pt-24 pb-10  relative">
+      <ImageBackground />
 
       <div className="w-full max-w-[360px] md:max-w-md bg-white/10 backdrop-blur-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 rounded-3xl p-6 md:p-8 relative overflow-hidden">
         

@@ -1,4 +1,3 @@
-// src/driver/components/ToPickupSheet.jsx
 
 export default function ToPickupSheet({ ride, onStartRide }) {
   return (

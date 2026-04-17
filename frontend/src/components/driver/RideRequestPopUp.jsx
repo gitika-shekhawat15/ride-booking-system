@@ -59,7 +59,7 @@ export default function RideRequestPopup({ ride, onAccept, onReject }) {
       
       <span className="w-2 h-2 rounded-full bg-orange-400" />
 
-      {/* 👇 dynamic line */}
+      {/*dynamic line */}
       <div className="flex-1 w-[2px] bg-white/20 my-1" />
 
       <span className="w-2 h-2 rounded-full bg-orange-700" />

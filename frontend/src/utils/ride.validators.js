@@ -1,4 +1,3 @@
-
 export const validateRide = ({ pickup, drop, pickupCoordinates, dropCoordinates }) => {
   const errors = {};
 

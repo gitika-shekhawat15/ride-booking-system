@@ -1,5 +1,3 @@
-// Hero.jsx
-
 import { motion } from "framer-motion";
 
 const Hero = () => {
@@ -19,7 +17,7 @@ const Hero = () => {
         </span>
       </motion.div>
 
-      {/* Main heading — centered, big */}
+      {/* Main heading */}
       <motion.h1
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -42,7 +40,7 @@ className="text-white/90 mt-5 text-lg md:text-xl max-w-xl leading-relaxed"
         and zero surge pricing — ever.
       </motion.p>
 
-      {/* CTA Buttons — centered neeche */}
+      {/* CTA Buttons */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

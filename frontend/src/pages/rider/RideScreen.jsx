@@ -80,7 +80,7 @@ export default function RideScreen() {
     };
   }, []);
 
-  // ✅ Reusable pickup/drop card
+  // Reusable pickup/drop card
   const PickupDropCard = () => (
     <div
       onClick={() => navigate("/book-ride")}
@@ -102,7 +102,7 @@ export default function RideScreen() {
     </div>
   );
 
-  // ✅ Reusable step content
+  // Reusable step content
   const StepContent = () => (
     <>
       {step === "OPTIONS" && <RideOptions selectedRide={selectedRide} setSelectedRide={setSelectedRide} onConfirm={handleConfirm} />}

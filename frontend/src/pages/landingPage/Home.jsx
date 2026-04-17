@@ -15,16 +15,16 @@ const Home = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-   const startBlur = window.innerHeight * 0.5;  // 50% scroll ke baad START
-      const maxScroll = window.innerHeight * 1.2;  // full blur yahan complete ho
+   const startBlur = window.innerHeight * 0.5; 
+      const maxScroll = window.innerHeight * 1.2;  
 
       const progress = Math.min(
-        Math.max((scrollY - startBlur) / (maxScroll - startBlur), 0), // 0 se pehle 0 hi rahe
+        Math.max((scrollY - startBlur) / (maxScroll - startBlur), 0),
         1
       );
       
-      setBlurAmount(progress * 14);        // 0 → 14px blur
-      setDarkAmount(progress * 0.6);       // 0 → 0.6 darkness
+      setBlurAmount(progress * 14);       
+      setDarkAmount(progress * 0.6);     
     };
      if (window.location.hash) {
     history.replaceState(null, null, window.location.pathname);
@@ -48,10 +48,10 @@ const Home = () => {
           <source src={heroBg} type="video/mp4" />
         </video>
 
-        {/* ✅ Static dark overlay — hamesha thodi darkness */}
+       
         <div className="absolute inset-0 bg-black/40" />
 
-        {/* ✅ Scroll ke saath aur dark hota hai */}
+       
         <div 
           className="absolute inset-0 bg-black"
           style={{ opacity: darkAmount }}

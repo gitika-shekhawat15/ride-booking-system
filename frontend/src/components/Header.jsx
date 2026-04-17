@@ -1,7 +1,5 @@
-// components/Header.jsx
 import { useNavigate } from "react-router-dom";
 
-// components/Header.jsx
 function Header() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");

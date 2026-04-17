@@ -4,10 +4,12 @@ import { Server } from 'socket.io';
 import { resolveDriverAcceptance } from './services/dispatch.service.js';
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, { cors: {
+  origin: "http://localhost:5173",
+  credentials: true
+} });
 const onlineDrivers = new Map();
 
-// ✅ Ek function — 2 jagah use
 const removeDriver = (userId) => {
   const count = onlineDrivers.get(userId);
   if (!count) return;
@@ -18,6 +20,10 @@ const removeDriver = (userId) => {
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
+
+ socket.on("ride:join", ({ rideId }) => {
+  socket.join(rideId);
+});
 
   socket.on("join", ({ userId, role }) => {
     socket.join(userId);
@@ -31,23 +37,48 @@ io.on("connection", (socket) => {
     console.log("ONLINE DRIVERS:", [...onlineDrivers.keys()]);
   });
 
-  socket.on("driver:location", (data) => {
-    io.emit("driver:location", data); // 🟡 baad mein sirf rider ko bhejo
-  });
+  socket.on("driver:location", ({ rideId, location }) => {
+  if (socket.role !== "driver") return;
 
-  socket.on("ride:accept", ({ driverId }) => {
-    resolveDriverAcceptance(driverId); // ✅ already imported, direct call
-  });
+  io.to(rideId).emit("driver:location", location);
+});
+
+socket.on("ride:accept", async ({ driverId, rideId }) => {
+  try {
+    if (socket.userId !== driverId || socket.role !== "driver") {
+      return socket.emit("error", "Unauthorized");
+    }
+
+    const accepted = await resolveDriverAcceptance(driverId, rideId);
+
+    if (!accepted) {
+      socket.emit("ride:accept_failed");
+      return;
+    }
+
+    socket.join(rideId);
+
+    io.to(rideId).emit("ride:accepted", {
+      driverId,
+      rideId
+    });
+
+  } catch (err) {
+    console.error("Accept error:", err.message);
+    socket.emit("error", "Something went wrong");
+  }
+});
 
   socket.on("driver:offline", ({ userId }) => {
-    removeDriver(userId); // ✅ same function
+    if (socket.userId !== userId || socket.role !== "driver") return;
+    removeDriver(userId); 
     console.log("Driver manually offline:", userId);
     console.log("ONLINE DRIVERS:", [...onlineDrivers.keys()]);
   });
 
   socket.on("disconnect", () => {
     if (socket.userId && socket.role === "driver") {
-      removeDriver(socket.userId); // ✅ same function
+      removeDriver(socket.userId); 
       console.log("Driver offline:", socket.userId);
       console.log("ONLINE DRIVERS:", [...onlineDrivers.keys()]);
     }

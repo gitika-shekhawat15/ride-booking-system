@@ -1,5 +1,3 @@
-// components/GlassCard.jsx
-
 import { motion } from "framer-motion";
 
 const GlassCard = ({ children, className = "", animate = false, delay = 0, onClick }) => {
@@ -13,7 +11,6 @@ const GlassCard = ({ children, className = "", animate = false, delay = 0, onCli
     ${className}
   `;
 
-  // ✅ animate prop true ho to motion.div, warna normal div
   if (animate) {
     return (
       <motion.div

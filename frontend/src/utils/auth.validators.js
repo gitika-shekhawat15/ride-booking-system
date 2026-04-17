@@ -1,4 +1,3 @@
-
 export const validateSignup = (data) => {
   const errors = {};
 

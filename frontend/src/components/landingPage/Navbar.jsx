@@ -10,7 +10,7 @@ const Navbar = () => {
 const scrollToSection = (id) => {
   const el = document.getElementById(id);
   if (el) {
-    const navbarHeight = 100; // 80 se 100 karo
+    const navbarHeight = 100;
     const top = el.getBoundingClientRect().top + window.scrollY - navbarHeight;
     window.scrollTo({ top, behavior: "smooth" });
   }

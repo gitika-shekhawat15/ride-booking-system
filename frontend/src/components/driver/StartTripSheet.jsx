@@ -34,7 +34,6 @@ export default function StartTripSheet({ ride, onStartTrip }) {
 
         </div>
 
-           {/* Location (combined card same as before) */}
         <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-3">
 
           <div className="flex items-stretch gap-3">

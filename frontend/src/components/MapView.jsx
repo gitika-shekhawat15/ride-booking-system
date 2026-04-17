@@ -9,28 +9,28 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// 🛺 Driver icon
+//  Driver icon
 const driverIcon = L.divIcon({
   className: "",
   html: `<div style="font-size:28px;filter:drop-shadow(0px 2px 4px rgba(0,0,0,0.4))">🛺</div>`,
   iconAnchor: [14, 14],
 });
 
-// 📍 Pickup icon
+//  Pickup icon
 const pickupIcon = L.divIcon({
   className: "",
   html: `<div style="font-size:24px">📍</div>`,
   iconAnchor: [12, 24],
 });
 
-// 🏁 Drop icon
+// Drop icon
 const dropIcon = L.divIcon({
   className: "",
   html: `<div style="font-size:24px">🏁</div>`,
   iconAnchor: [12, 24],
 });
 
-// ✅ Recenter on driver
+// Recenter on driver
 function RecenterDriver({ driverLocation }) {
   const map = useMap();
   useEffect(() => {
@@ -41,7 +41,6 @@ function RecenterDriver({ driverLocation }) {
   return null;
 }
 
-// ✅ OSRM se real road route fetch karo
 function RouteLayer({ from, to }) {
   const [routeCoords, setRouteCoords] = useState([]);
 
@@ -85,7 +84,6 @@ export default function MapView({ lat, lng, driverLocation, pickupLocation, drop
   const defaultLat = lat || 30.3165;
   const defaultLng = lng || 78.0322;
 
-  // Driver ka "from" — uski current location
   const driverFrom = driverLocation
     ? { lat: driverLocation.lat, lng: driverLocation.lng }
     : null;
@@ -117,7 +115,7 @@ export default function MapView({ lat, lng, driverLocation, pickupLocation, drop
       {/* Recenter on driver */}
       <RecenterDriver driverLocation={driverLocation} />
 
-      {/* 🛺 Driver marker */}
+      {/* Driver marker */}
       {driverLocation && (
         <Marker
           position={[driverLocation.lat, driverLocation.lng]}
@@ -127,33 +125,33 @@ export default function MapView({ lat, lng, driverLocation, pickupLocation, drop
         </Marker>
       )}
 
-      {/* 📍 Pickup marker */}
+      {/*  Pickup marker */}
       {pickupPoint && (
         <Marker position={[pickupPoint.lat, pickupPoint.lng]} icon={pickupIcon}>
           <Popup>📍 Pickup</Popup>
         </Marker>
       )}
 
-      {/* 🏁 Drop marker */}
+      {/*Drop marker */}
       {dropPoint && (
         <Marker position={[dropPoint.lat, dropPoint.lng]} icon={dropIcon}>
           <Popup>🏁 Drop</Popup>
         </Marker>
       )}
 
-      {/* You (rider/driver khud) */}
+  
       {lat && lng && (
         <Marker position={[lat, lng]}>
           <Popup>📌 You</Popup>
         </Marker>
       )}
 
-      {/* ✅ Route: Driver → Pickup */}
+      {/*  Route: Driver → Pickup */}
       {driverFrom && pickupPoint && (
         <RouteLayer from={driverFrom} to={pickupPoint} />
       )}
 
-      {/* ✅ Route: Pickup → Drop */}
+      {/* Route: Pickup → Drop */}
       {pickupPoint && dropPoint && (
         <RouteLayer from={pickupPoint} to={dropPoint} />
       )}

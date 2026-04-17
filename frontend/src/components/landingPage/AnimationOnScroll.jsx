@@ -1,8 +1,6 @@
-// animationOnScroll.jsx — COMPLETE FIXED FILE
-
 import { motion } from "framer-motion";
 
-// 🔥 Jump animation
+// Jump animation
 export const JumpIn = ({ children, delay = 0 }) => (
   <motion.div
     initial={{ opacity: 0, y: 60 }}
@@ -14,7 +12,7 @@ export const JumpIn = ({ children, delay = 0 }) => (
   </motion.div>
 );
 
-// 🔥 Fade animation — 4 directions
+// Fade animation — 4 directions
 export const FadeIn = ({ children, delay = 0, direction = "up" }) => {
   const initial = {
     up:    { opacity: 0, y: 40 },
@@ -35,7 +33,7 @@ export const FadeIn = ({ children, delay = 0, direction = "up" }) => {
   );
 };
 
-// 🔥 Stagger container
+//Stagger container
 export const StaggerContainer = ({ children }) => (
   <motion.div
     initial="hidden"
@@ -50,7 +48,7 @@ export const StaggerContainer = ({ children }) => (
   </motion.div>
 );
 
-// 🔥 Stagger child
+//Stagger child
 export const StaggerItem = ({ children }) => (
   <motion.div
     variants={{

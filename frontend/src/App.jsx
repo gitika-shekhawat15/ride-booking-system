@@ -25,40 +25,40 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         <Route path="/rider/me" element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="rider">
              <RiderProfile />
           </ProtectedRoute> 
           }/>
         <Route path="/home" element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="rider">
              <RiderHome />
           </ProtectedRoute> 
           }/>
         <Route path="/become-driver" element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="rider">
              <BecomeDriver/>
           </ProtectedRoute>
           }/>
           <Route path="/driver/me" element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="driver">
              <DriverProfile />
           </ProtectedRoute> 
           }/>
 
         <Route path="/driver/home" element={
-         <ProtectedRoute>
+         <ProtectedRoute requiredRole="driver">
             <DriverScreen/>
          </ProtectedRoute>
         }/>
 
          <Route path="/book-ride" element={
-         <ProtectedRoute>
+         <ProtectedRoute requiredRole="rider">
             <Destination/>
          </ProtectedRoute>
         }/>
 
         <Route path="/ride-options" element={
-         <ProtectedRoute>
+         <ProtectedRoute requiredRole="rider">
             <RideScreen/>
          </ProtectedRoute>
         }/>

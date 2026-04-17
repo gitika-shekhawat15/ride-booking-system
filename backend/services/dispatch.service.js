@@ -7,7 +7,7 @@ import userModel from "../models/user.model.js";
 const DISPATCH_TIMEOUT = 10000;
 const RETRY_TIMEOUT = 15000;
 
-const pendingRequests = {};
+const pendingRequests = new Map();
 
 export const dispatchRide = async (rideId, attempt = 1, offeredDrivers = new Set()) => {
   let driversFound = false;
@@ -32,7 +32,7 @@ export const dispatchRide = async (rideId, attempt = 1, offeredDrivers = new Set
       onlineDrivers.has(d.userId.toString())
     );
 
-    // ✅ CASE 1: NO DRIVERS
+    // CASE 1: NO DRIVERS
     if (onlineNearbyDrivers.length === 0) {
 
       if (attempt >= 3) {
@@ -66,7 +66,7 @@ export const dispatchRide = async (rideId, attempt = 1, offeredDrivers = new Set
       if (accepted) return;
     }
 
-    // ✅ CASE 2: DRIVERS BUT NO ACCEPT
+    // CASE 2: DRIVERS BUT NO ACCEPT
     if (driversFound && attempt >= 3) {
       io.to(ride.rider.toString()).emit("ride:search_failed", {
         reason: "DRIVER_UNAVAILABLE"
@@ -123,7 +123,7 @@ const offerRideToDriver = async (driverId, rideId, ride) => {
 
     return new Promise((resolve) => {
         io.to(driverId).emit("ride:request", {
-            rideId: ride._id, // ✅ sirf ek
+            rideId: ride._id,
             pickupLocation: ride.pickupLocation,
             dropLocation: ride.dropLocation,
             riderName: rider?.fullname?.firstname + " " + rider?.fullname?.lastname,
@@ -135,21 +135,41 @@ const offerRideToDriver = async (driverId, rideId, ride) => {
         });
 
         const timeout = setTimeout(() => {
-            delete pendingRequests[driverId];
+            pendingRequests.delete(driverId);
             resolve(false);
         }, DISPATCH_TIMEOUT);
 
-        pendingRequests[driverId] = { rideId, resolve, timeout };
+        pendingRequests.set(driverId, { rideId, resolve, timeout });
     });
 };
 
-export const resolveDriverAcceptance = (driverId) => {
-  const pending = pendingRequests[driverId];
-  if (!pending) return false;
+export const resolveDriverAcceptance =  async (driverId, rideId) => {
+  const pending = pendingRequests.get(driverId);
+if (!pending || pending.rideId !== rideId) return false;  
+
+  const ride = await rideModel.findOneAndUpdate(
+    { _id: rideId, status: "REQUESTED" },
+    { status: "ACCEPTED", driver: driverId },
+    { new: true }
+  );
+
+  if (!ride) {
+  clearTimeout(pending.timeout);
+  pendingRequests.delete(driverId);
+  return false;
+}
+ await driverProfile.findOneAndUpdate(
+    { userId: driverId },
+    {
+      isAvailable: false,
+      activeRideId: rideId
+    }
+  );
+  
 
   clearTimeout(pending.timeout);
   pending.resolve(true);
-  delete pendingRequests[driverId];
+  pendingRequests.delete(driverId);
 
   return true;
 };

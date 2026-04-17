@@ -56,7 +56,13 @@ export default function DriverHome() {
         setMyLocation({ lat: latitude, lng: longitude });
         await updateLocationService(longitude, latitude, token);
         if (activeRide) {
-          socket.emit("driver:location", { lat: latitude, lng: longitude });
+          socket.emit("driver:location", {
+  rideId: activeRide?.rideId,
+  location: {
+    lat: latitude,
+    lng: longitude
+  }
+});
         }
       },
       (err) => console.log("Location error:", err),
@@ -104,15 +110,28 @@ export default function DriverHome() {
         <RideRequestPopup
           ride={activeRide}
           onAccept={async () => {
-            try {
-              const id = activeRide?.rideId || activeRide?._id;
-              await acceptRideService(id);
-              setDriverStatus("TO_ARRIVE");
-            } catch (err) {
-              console.log("Error:", err.response?.data || err.message);
-              setDriverStatus("SEARCHING");
-            }
-          }}
+  try {
+    const id = activeRide?.rideId || activeRide?._id;
+
+    const decoded = JSON.parse(atob(token.split(".")[1]));
+    const driverId = decoded._id;
+
+    socket.emit("ride:accept", {
+      driverId,
+      rideId: id
+    });
+
+    socket.emit("ride:join", { rideId: id });
+
+    await acceptRideService(id);
+
+    setDriverStatus("TO_ARRIVE");
+
+  } catch (err) {
+    console.log("Error:", err.response?.data || err.message);
+    setDriverStatus("SEARCHING");
+  }
+}}
           onReject={() => { setActiveRide(null); setDriverStatus("SEARCHING"); }}
         />
       )}
