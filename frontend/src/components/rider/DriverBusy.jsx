@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import bikeImg from "../../assets/images/bikeImg.png";
 import autoImg from "../../assets/images/autoImg.png";
-import carImg from "../../assets/images/blackcarImg.png";
+import carImg from "../../assets/images/blackCarImg.png";
 
 const vehicleImages = {
   Bike: bikeImg,
