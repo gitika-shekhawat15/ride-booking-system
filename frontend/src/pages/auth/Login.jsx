@@ -30,7 +30,6 @@ function Login() {
     setLoading(true);
     try {
       const res = await loginUser({ email: loginData.email, password: loginData.password });
-      console.log("User logged in successfully", res);
       localStorage.removeItem("token"); ;
       localStorage.setItem("token", res.token);
       localStorage.setItem("role", res.user.role);
@@ -128,7 +127,7 @@ function Login() {
 
 
           <Button
-            onClick={handleSubmit}
+            type="submit"
             loading={loading} className="
             bg-[#D6FF2F] text-black font-bold
             py-2.5 md:py-3 rounded-xl text-sm md:text-base mt-1

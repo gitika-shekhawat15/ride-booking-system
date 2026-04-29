@@ -36,11 +36,21 @@ function Destination() {
 
         setLoadingLocation(false);
       },
-      () => {
-        setPickup("Current Location");
-        setPickupCoordinates([78.0322, 30.3165]);
-        setLoadingLocation(false);
-      }
+      async () => {
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
+
+    setPickupCoordinates([data.longitude, data.latitude]);
+    setPickup(data.city || "Your Location");
+  } catch (err) {
+    setPickup("Location not available");
+    setPickupCoordinates(null);
+  }
+
+  setLoadingLocation(false);
+}
+      
     );
   }, []);
 
@@ -57,7 +67,8 @@ function Destination() {
         const data = await res.json();
         setPickupSuggestions(data);
       } catch (err) {
-        console.log(err);
+          setPickupSuggestions([]);
+
       }
     }, 500);
 
@@ -76,9 +87,8 @@ function Destination() {
         );
         const data = await res.json();
         setDropSuggestions(data);
-      } catch (err) {
-        console.log(err);
-      }
+       } catch (err) {
+        setDropSuggestions([]);}
     }, 500);
 
     return () => clearTimeout(timer);

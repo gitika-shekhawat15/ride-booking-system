@@ -40,7 +40,6 @@ function Signup() {
         password: signupData.password,
       };
       const res = await registerUser(payload);
-      console.log("User created", res);
       localStorage.removeItem("token");
       localStorage.setItem("token", res.token);
       localStorage.setItem("role", res.user.role);
@@ -185,7 +184,6 @@ return (
   </div>
 
     <Button
-    onClick={handleSubmit}
     type="submit"
     loading={loading}
     className="

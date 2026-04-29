@@ -84,7 +84,6 @@ export default function DriverHome() {
       socket.emit("ride:join", { rideId: id });
       setDriverStatus("TO_ARRIVE");
     } catch (err) {
-      console.log("Error:", err.response?.data || err.message);
       setDriverStatus("SEARCHING");
     }
   }, [activeRide]);
@@ -113,7 +112,6 @@ export default function DriverHome() {
       setActiveRide(null);
       setDriverStatus("SEARCHING");
     } catch (err) {
-      console.log("Error:", err.response?.data || err.message);
     }
   }, [activeRide]);
 
@@ -122,33 +120,40 @@ export default function DriverHome() {
       setDriverStatus("SEARCHING");
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
-        const decoded = JSON.parse(atob(token.split(".")[1]));
+if (!token) return;
+
+let decoded;
+try {
+  decoded = JSON.parse(atob(token.split(".")[1]));
+} catch {
+  return;
+}
+
         const driverId = decoded._id;
-        await goOnlineService(driverId, [longitude, latitude]);
-        socket.emit("join", { userId: driverId, role: "driver" });
+       try {
+  await goOnlineService(driverId, [longitude, latitude]);
+  socket.emit("join", { userId: driverId, role: "driver" });
+} catch (err) {
+  setDriverStatus("OFFLINE");
+}
       });
     } else {
       setDriverStatus("OFFLINE");
-      const decoded = JSON.parse(atob(token.split(".")[1]));
-      const driverId = decoded._id;
+if (!token) return;
+
+let decoded;
+try {
+  decoded = JSON.parse(atob(token.split(".")[1]));
+} catch {
+  return;
+}
+
+const driverId = decoded._id;
       socket.emit("driver:offline", { userId: driverId });
       await goOfflineService();
     }
   };
-useEffect(() => {
-  if (driverStatus === "OFFLINE") return;
-  
-  const heartbeat = setInterval(async () => {
-    try {
-      const decoded = JSON.parse(atob(token.split(".")[1]));
-      socket.emit("heartbeat", { userId: decoded._id, role: "driver" });
-    } catch (err) {
-      console.log("Heartbeat error:", err);
-    }
-  }, 30000);
-  
-  return () => clearInterval(heartbeat);
-}, [driverStatus]);
+
 
   useEffect(() => {
     if (driverStatus === "OFFLINE") return;
@@ -162,17 +167,20 @@ useEffect(() => {
         lastDBUpdate.current = Date.now();
         }
         if (activeRide) {
-          socket.emit("driver:location", {
-            rideId: activeRide?.rideId,
-            location: { lat: latitude, lng: longitude }
-          });
+         const id = activeRide?.rideId || activeRide?._id;
+
+socket.emit("driver:location", {
+  rideId: id,
+  location: { lat: latitude, lng: longitude }
+});
         }
         if (Date.now() - lastMapUpdate.current > 5000) {
           setMyLocation({ lat: latitude, lng: longitude });
           lastMapUpdate.current = Date.now();
         }
       },
-      (err) => console.log("Location error:", err),
+            (err) => console.log("Location error:", err),
+
       { enableHighAccuracy: true }
     );
     return () => navigator.geolocation.clearWatch(watchId);
@@ -206,6 +214,24 @@ useEffect(() => {
       socket.off("ride:timeout");
     };
   }, []);
+  useEffect(() => {
+  if (driverStatus === "OFFLINE") return;
+
+  const heartbeat = setInterval(() => {
+    if (!token) return;
+
+    let decoded;
+    try {
+      decoded = JSON.parse(atob(token.split(".")[1]));
+    } catch {
+      return;
+    }
+
+    socket.emit("heartbeat", { userId: decoded._id, role: "driver" });
+  }, 30000);
+
+  return () => clearInterval(heartbeat);
+}, [driverStatus]);
 
   if (isOffline) {
     return (

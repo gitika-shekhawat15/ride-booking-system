@@ -15,6 +15,7 @@ const auth = async (req, res, next) => {
 
     // VERIFY token (NOT sign)
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
 
     // Get full user from DB
     const user = await userModel.findById(decoded._id).select("-password");

@@ -190,7 +190,7 @@ export default function BecomeDriver() {
     </p>
   )}
 
-          <Button onClick={handleSubmit} loading={loading} className="
+          <Button type="submit" loading={loading} className="
             bg-[#D6FF2F] text-black font-bold
             py-2.5 md:py-3 rounded-xl text-sm md:text-base mt-1
             hover:-translate-y-0.5 hover:shadow-[0_6px_20px_#D6FF2F50]

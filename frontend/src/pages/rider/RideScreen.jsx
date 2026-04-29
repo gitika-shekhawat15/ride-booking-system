@@ -46,6 +46,8 @@ export default function RideScreen() {
 
     );
      setRideId(res.ride._id);
+     socket.emit("ride:join", { rideId: res.ride._id });
+
     setRideData(res.ride);
     setStep("SEARCHING");
   } catch (err) {
@@ -64,9 +66,19 @@ export default function RideScreen() {
     );
   }, []);
 
-  useEffect(() => {
-    const decoded = JSON.parse(atob(localStorage.getItem("token").split(".")[1]));
-    const userId = decoded._id;
+ useEffect(() => {
+  let userId;
+
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const decoded = JSON.parse(atob(token.split(".")[1]));
+    userId = decoded._id;
+  } catch (err) {
+    console.log("Invalid token");
+    return;
+  }
     socket.emit("join", { userId, role: "rider" });
     socket.on("ride:status", (data) => {
       if (data.status === "ASSIGNED") { setStep("ACCEPTED"); setDriverInfo(data.driver); }
