@@ -17,6 +17,10 @@ const rideSchema = new mongoose.Schema({
     enum: ["bike", "auto", "car"],
     required: true
 },
+  fare: {
+  type: Number,
+  default: 0,
+},
 
   pickupLocation: {
     type: {

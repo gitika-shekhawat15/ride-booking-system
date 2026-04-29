@@ -1,10 +1,11 @@
 import userModel from "../models/user.model.js";
+import AppError from "../utils/AppError.js";
 
 export const registerUserService = async (userData) => {
     const { email, password } = userData;
 
     const existingUser = await userModel.findOne({ email });
-    if (existingUser) throw new Error("Email already registered");
+    if (existingUser) throw new AppError("Email already registered", 400);
 
     userData.password = await userModel.hashPassword(password);
     const user = await userModel.create(userData);
@@ -18,12 +19,12 @@ export const loginUserService = async ({email, password}) => {
             .select("+password"); 
 ;
     if(!user) {
-        throw new Error("Invalid credentials");
+        throw new AppError("Invalid credentials", 401);
     }
     
     const isMatch = await user.comparePassword(password);
     if(!isMatch) {
-        throw new Error("Invalid credentials");
+        throw new AppError("Invalid credentials", 401);
     }
   
     

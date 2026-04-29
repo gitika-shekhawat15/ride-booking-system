@@ -4,10 +4,11 @@ import { motion } from "framer-motion";
 import { registerUser } from "../../services/auth.service.js";
 import VideoBackground from "../../components/VideoBackground.jsx";
 import { validateSignup } from "../../utils/auth.validators.js";
+import Button from "../../components/ui/Button.jsx";
 
 function Signup() {
   const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(false);
   const [signupData, setSignupData] = useState({
     firstName: "", lastName: "", email: "", password: "",
   });
@@ -28,6 +29,7 @@ function Signup() {
     setErrors(validationErrors);
   return;
 }
+    setLoading(true);
     try {
       const payload = {
         fullname: {
@@ -39,7 +41,7 @@ function Signup() {
       };
       const res = await registerUser(payload);
       console.log("User created", res);
-      localStorage.clear();
+      localStorage.removeItem("token");
       localStorage.setItem("token", res.token);
       localStorage.setItem("role", res.user.role);
       navigate("/home");
@@ -66,7 +68,9 @@ function Signup() {
 
     setErrors(formattedErrors);
   }
-}
+} finally {
+  setLoading(false);
+} 
   };
   
 return (
@@ -180,29 +184,21 @@ return (
     )}
   </div>
 
-    <button
-  type="submit"
-  className="
+    <Button
+    onClick={handleSubmit}
+    type="submit"
+    loading={loading}
+    className="
     bg-[#D6FF2F] text-black font-bold
     py-2.5 md:py-3 rounded-xl text-sm md:text-base mt-1
     hover:-translate-y-0.5 hover:shadow-[0_6px_20px_#D6FF2F50]
     active:translate-y-0 active:scale-95 transition-all duration-200
-  "
->
-  Create Account
-</button>
-      <button type="button" className="
-        bg-white/10 border border-white/20
-        py-2.5 md:py-3 rounded-xl text-white text-xs md:text-sm font-medium
-        flex items-center justify-center gap-2
-        hover:bg-white/20 transition-all duration-200
-      ">
-        <img src="https://www.google.com/favicon.ico" className="w-3.5 h-3.5" />
-        Sign up with Google
-      </button>
-
+    "
+    >
+      Create Account
+    </Button>
+     
     </form>
-
     <p className="text-center text-white/40 text-xs md:text-sm mt-3 md:mt-5">
       Already have an account?{" "}
       <span onClick={() => navigate("/login")} className="text-[#D6FF2F] cursor-pointer hover:underline">

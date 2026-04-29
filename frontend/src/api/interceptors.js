@@ -1,5 +1,12 @@
-import api from "./axios";
+import axios from "axios";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  timeout: 10000,
+  withCredentials: true,
+});
+
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -11,6 +18,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -20,3 +28,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export default api;

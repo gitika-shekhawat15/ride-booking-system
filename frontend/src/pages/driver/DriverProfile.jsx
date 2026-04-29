@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ImageBackground from "../../components/ImageBackground";
 import { getDriverProfile, updateDriverProfile } from "../../services/driver.service";
+import Button from "../../components/ui/Button";
 
 function DriverProfile() {
   const navigate = useNavigate();
+    
 
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -27,6 +29,8 @@ function DriverProfile() {
   const [errors, setErrors] = useState({});
   const [showToast, setShowToast] = useState(false);
   const [loading, setLoading] = useState(true);
+    const [saveLoading, setSaveLoading] = useState(false);
+
 
  useEffect(() => {
   const fetchProfile = async () => {
@@ -79,6 +83,7 @@ function DriverProfile() {
     setErrors(errs);
     return;
   }
+  setSaveLoading(true);
 
   try {
     const res = await updateDriverProfile({
@@ -99,8 +104,10 @@ function DriverProfile() {
     setTimeout(() => setShowToast(false), 2500);
   } catch (error) {
     console.error("Failed to update profile", error);
+  } finally {
+    setSaveLoading(false);
   }
-};;
+};
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -288,12 +295,13 @@ function DriverProfile() {
           </div>
 
           {/* Save */}
-          <button
+          <Button
             onClick={handleSave}
+            loading={saveLoading}
             className="w-full bg-[#D6FF2F] text-black font-bold py-3 rounded-xl text-sm hover:-translate-y-0.5 hover:shadow-[0_6px_20px_#D6FF2F40] active:scale-95 transition-all duration-200 mb-2.5"
           >
             Save changes
-          </button>
+          </Button>
 
           {/* Logout */}
           <button

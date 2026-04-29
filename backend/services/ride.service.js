@@ -1,7 +1,10 @@
 import driverProfile from "../models/driver.model.js";
 import rideModel from "../models/ride.model.js";
-import {dispatchRide, resolveDriverAcceptance } from "./dispatch.service.js";
+import {dispatchRide, resolveDriverAcceptance, pendingRequests} from "./dispatch.service.js";
 import { io } from "../server.js"; 
+import { calculateFare } from "./dispatch.service.js";
+import AppError from "../utils/AppError.js";
+import mongoose from "mongoose";
 
 export const createRideService = async (
   userId,
@@ -13,8 +16,14 @@ export const createRideService = async (
   const validVehicles = ["bike", "car", "auto"];
 
   if (!validVehicles.includes(vehicleType)) {
-    throw new Error("Invalid vehicle type");
+      throw new AppError("Invalid vehicle type", 400);
+
   }
+    const fare = calculateFare(
+    pickupLocation.coordinates,
+    dropLocation.coordinates,
+    vehicleType
+  );
 
   const ride = await rideModel.create({
     rider: userId,
@@ -23,6 +32,7 @@ export const createRideService = async (
     vehicleType,
     status: "REQUESTED",
     driver: null,
+    fare,
   });
 
   try {
@@ -34,53 +44,50 @@ export const createRideService = async (
   return ride;
 };
 
-export const acceptRideService = async (driverId) => {
-
-  resolveDriverAcceptance(driverId.toString());
-
-  const ride = await rideModel.findOneAndUpdate(
-    {
-      status: "REQUESTED",
-      driver: null,
-    },
-    {
-      status: "ASSIGNED",
-      driver: driverId,
-    },
-    { new: true }
-  );
-
-  if (!ride) {
-    throw new Error("RIDE_ALREADY_ASSIGNED");
+export const acceptRideService = async (driverId, rideId) => {
+  if (!mongoose.Types.ObjectId.isValid(rideId)) {
+    throw new AppError("Invalid ride ID", 400);
   }
 
-const driver = await driverProfile
-  .findOne({ userId: driverId })
-  .populate("userId", "fullname");
-  //  emit to rider
+  // 1. Driver check
+  const driver = await driverProfile
+    .findOne({ userId: driverId })
+    .populate("userId", "fullname");
+  if (!driver) throw new AppError("Driver not found", 404);
+  if (!driver.isAvailable) throw new AppError("Driver is offline", 400);
+  if (driver.activeRideId) throw new AppError("Driver already on a ride", 400);
+
+  // 2. Pending check
+  const pending = pendingRequests.get(driverId.toString());
+  if (!pending || pending.rideId.toString() !== rideId.toString()) {
+    throw new AppError("Ride request expired", 400);
+  }
+
+  // 3. Resolve acceptance
+  const ride = await resolveDriverAcceptance(driverId.toString(), rideId);
+
+  if (!ride) {
+    const existingRide = await rideModel.findById(rideId);
+    if (!existingRide) throw new AppError("Ride not found", 404);
+    if (existingRide.status === "CANCELLED") throw new AppError("Ride was cancelled", 400);
+    if (existingRide.status === "ASSIGNED") throw new AppError("Ride already assigned", 409);
+    throw new AppError("Ride not available", 400);
+  }
+
+  // 4. Emit to rider
   io.to(ride.rider.toString()).emit("ride:status", {
     status: "ASSIGNED",
     rideId: ride._id,
-       driver: {
-    name: driver?.userId?.fullname
-      ? `${driver.userId.fullname.firstname} ${driver.userId.fullname.lastname || ""}`
-      : "Driver",      
+    driver: {
+      name: driver?.userId?.fullname
+        ? `${driver.userId.fullname.firstname} ${driver.userId.fullname.lastname || ""}`
+        : "Driver",
       photo: driver?.photo || "https://i.pravatar.cc/100",
       vehicle: driver?.vehicleType,
-   
       rating: driver?.rating || "4.9",
       vehicleNumber: driver?.vehicleNumber || "—",
-    }
+    },
   });
-
-
-  await driverProfile.findOneAndUpdate(
-    { userId: driverId },
-    {
-      isAvailable: false,
-      activeRideId: ride._id,
-    }
-  );
 
   return ride;
 };
@@ -93,9 +100,16 @@ const driver = await driverProfile
     userRole
 }) => {
 
+
+if (!mongoose.Types.ObjectId.isValid(rideId)) {
+ throw new AppError("Invalid ride ID", 400);
+}
+  
+
+
     const ride = await rideModel.findById(rideId);
     if(!ride) {
-        throw new Error("Ride not found");
+        throw new AppError("Ride not found", 404);
     }
 
     const currentStatus = ride.status;
@@ -111,20 +125,22 @@ const driver = await driverProfile
     //Transiton validation
     const allowedNext = allowedTransitions[currentStatus] || [];
     if(!allowedNext.includes(newStatus)) {
-        throw new Error(`Invalid transition from ${currentStatus} to ${newStatus}`);
-    }
+      throw new AppError(
+      `Invalid transition from ${currentStatus} to ${newStatus}`,
+      400
+    );    }
 
     // Role-based validation
      if (newStatus === "ARRIVED" && userRole !== "driver") {
-    throw new Error("Only driver can mark the ride as arrived");
+    throw new AppError("Only driver can perform this action", 403);
   }
 
  if (newStatus === "STARTED" && userRole !== "driver") {
-    throw new Error("Only driver can start the ride");
+    throw new AppError("Only driver can start the ride",403);
   }
 
   if (newStatus === "COMPLETED" && userRole !== "driver") {
-    throw new Error("Only driver can complete the ride");
+    throw new AppError("Only driver can complete the ride", 403);
   }
 
 
@@ -133,7 +149,7 @@ const driver = await driverProfile
     const isDriver = ride.driver?.toString() === userId.toString();
 
     if (!isRider && !isDriver) {
-      throw new Error("Not authorized to cancel this ride");
+      throw new AppError("Not authorized to cancel this ride",403);
     }
   }
 
@@ -163,21 +179,24 @@ const driver = await driverProfile
 
 export const getLiveRideLocationService = async(rideId, riderId) => {
 
+if (!mongoose.Types.ObjectId.isValid(rideId)) {
+  throw new AppError("Invalid ride ID", 400);
+}
     const ride = await rideModel.findById(rideId);
 
     if (!ride) {
-        throw new Error("Ride not found!");
+        throw new AppError("Ride not found", 404);
     }
 
     // rider ownership check
     if(ride.rider.toString() !== riderId.toString()){
-        throw new Error("Not authorized to view this ride");
-
+      throw new AppError("Ride not found", 404);
     }
      //  fetch driver profile using userId
   const driver = await driverProfile.findOne({
     userId: ride.driver,
   });
+  
 
     return {
         status: ride.status,
@@ -186,6 +205,9 @@ export const getLiveRideLocationService = async(rideId, riderId) => {
 }
 
 export const getNearbyRidesService = async (lng, lat) => {
+   if (!lng || !lat) {
+    throw new AppError("Longitude and latitude required", 400);
+  }
     return await rideModel.find({
         status: "REQUESTED",
         driver: null,

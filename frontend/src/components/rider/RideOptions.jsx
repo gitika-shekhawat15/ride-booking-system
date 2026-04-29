@@ -2,16 +2,30 @@ import { useLocation } from "react-router-dom";
 import bikeImg from "../../assets/images/bikeImg.png";
 import autoImg from "../../assets/images/autoImg.png";
 import carImg from "../../assets/images/whiteCarImg.png";
+import { calculateFare } from "../../utils/fare.js";
+import Button from "../ui/Button.jsx";
 
-const rides = [
-  { type: "Bike", img: bikeImg, price: 74, eta: "4 min", seats: "1 seat" },
-  { type: "Auto", img: autoImg, price: 222, eta: "6 min", seats: "Up to 3 seats" },
-  { type: "Car", img: carImg, price: 290, eta: "8 min", seats: "Up to 4 seats" },
-];
-
-function RideOptions({ selectedRide, setSelectedRide, onConfirm }) {
+function RideOptions({ selectedRide, setSelectedRide, onConfirm, isBooking }) {
   const { state } = useLocation();
   const { pickupCoordinates, dropCoordinates } = state || {};
+
+  const rides = [
+    { 
+      type: "Bike", img: bikeImg, 
+      price: calculateFare(pickupCoordinates, dropCoordinates, "bike"),
+      eta: "4 min", seats: "1 seat" 
+    },
+    { 
+      type: "Auto", img: autoImg, 
+      price: calculateFare(pickupCoordinates, dropCoordinates, "auto"),
+      eta: "6 min", seats: "Up to 3 seats" 
+    },
+    { 
+      type: "Car", img: carImg, 
+      price: calculateFare(pickupCoordinates, dropCoordinates, "car"),
+      eta: "8 min", seats: "Up to 4 seats" 
+    },
+  ];
 
   return (
     <div className=" flex flex-col h-full overflow-hidden text-white ">
@@ -46,10 +60,9 @@ function RideOptions({ selectedRide, setSelectedRide, onConfirm }) {
       </div>
 
       {/* Confirm Button */}
-<div className="px-4 py-4 md:px-6 border-t border-white/10"> 
-        <button       
+      <div className="px-4 py-4 md:px-6 border-t border-white/10"> 
+        <Button onClick={onConfirm}  loading={isBooking}       
           disabled={!selectedRide}
-          onClick={() => onConfirm()}
           className="
             w-full mt-1 md:my-3 py-3 md:py-4 rounded-2xl
             bg-[#D6FF2F] text-black font-bold text-sm md:text-base
@@ -60,7 +73,7 @@ function RideOptions({ selectedRide, setSelectedRide, onConfirm }) {
           "
         >
           {selectedRide ? `Confirm ${selectedRide} →` : "Select a ride"}
-        </button>
+        </Button>
       </div>
 
     </div>

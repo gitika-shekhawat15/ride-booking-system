@@ -1,7 +1,7 @@
 import express from "express";
-import { createDriverValidator, updateProfileValidator, updateDriverLocationValidator } from "../validators/driver.validator.js";
+import { createDriverValidator,goOnlineValidator, updateProfileValidator, updateDriverLocationValidator } from "../validators/driver.validator.js";
 import validate from "../middlewares/validate.js";
-import { registerDriver, getMyProfile, updateDriverLocation, goOnline, goOffline} from "../controllers/driver.controller.js";
+import { registerDriver,updateProfile, getMyProfile, updateDriverLocation, goOnline, goOffline} from "../controllers/driver.controller.js";
 import auth from "../middlewares/auth.js";
 import { requireDriver } from "../middlewares/role.js";
 
@@ -28,7 +28,7 @@ router.put("/me",
     requireDriver,
         updateProfileValidator,
     validate,
-    getMyProfile
+    updateProfile
 );
 
 router.patch("/location",
@@ -39,8 +39,8 @@ router.patch("/location",
     validate,
     updateDriverLocation
 );
-router.post("/online", auth, goOnline);
-router.post("/offline", auth, goOffline);
+router.post("/online", auth, requireDriver,goOnlineValidator,validate,  goOnline);
+router.post("/offline", auth, requireDriver, goOffline);
 
 
 export default router;

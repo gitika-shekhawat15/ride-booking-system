@@ -1,13 +1,18 @@
 import app from './app.js';
 import http from 'http';
 import { Server } from 'socket.io';
-import { resolveDriverAcceptance } from './services/dispatch.service.js';
+import { resolveDriverAcceptance, pendingRequests } from './services/dispatch.service.js';
+import driverProfile from './models/driver.model.js';
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: {
-  origin: "http://localhost:5173",
-  credentials: true
-} });
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ["websocket", "polling"]
+});
 const onlineDrivers = new Map();
 
 const removeDriver = (userId) => {
@@ -68,6 +73,16 @@ socket.on("ride:accept", async ({ driverId, rideId }) => {
     socket.emit("error", "Something went wrong");
   }
 });
+socket.on("heartbeat", ({ userId, role }) => {
+  if (role === "driver") {
+    // online map mein confirm karo
+    if (!onlineDrivers.has(userId)) {
+      onlineDrivers.set(userId, 1);
+      console.log("Driver heartbeat restored:", userId);
+    }
+  }
+});
+
 
   socket.on("driver:offline", ({ userId }) => {
     if (socket.userId !== userId || socket.role !== "driver") return;
@@ -85,9 +100,20 @@ socket.on("ride:accept", async ({ driverId, rideId }) => {
   });
 });
 
-server.listen(process.env.PORT || 4000, () => {
+server.listen(process.env.PORT || 4000, async () => {
   console.log(`Server is running on port ${process.env.PORT || 4000}`);
+   try {
+    const activeDrivers = await driverProfile.find({ isAvailable: true }); 
+    activeDrivers.forEach(d => {
+      onlineDrivers.set(d.userId.toString(), 1);
+    });
+    console.log("Restored drivers:", onlineDrivers.size);
+  } catch (err) {
+    console.log("Could not restore drivers:", err.message);
+  }
 });
+  
+
 
 export { io, onlineDrivers };
 export default server;

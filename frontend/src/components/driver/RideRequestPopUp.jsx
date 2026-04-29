@@ -1,21 +1,30 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function RideRequestPopup({ ride, onAccept, onReject }) {
   const [timeLeft, setTimeLeft] = useState(10);
+  const onRejectRef = useRef(onReject);
 
   useEffect(() => {
-    if (timeLeft === 0) {
-      onReject();
-      return;
-    }
+    onRejectRef.current = onReject;
+  }, [onReject]);
 
-    const timer = setTimeout(() => {
-      setTimeLeft((t) => t - 1);
+  useEffect(() => {
+    setTimeLeft(10);
+
+    const interval = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          clearInterval(interval);
+          onRejectRef.current();
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
 
-    return () => clearTimeout(timer);
-  }, [timeLeft, onReject]);
+    return () => clearInterval(interval);
+  }, [ride?.rideId]); 
 
   return (
     <div className="flex flex-col items-center justify-center md:px-4 md:py-8 px-2 py-2 text-white">

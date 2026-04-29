@@ -1,6 +1,4 @@
-import { goOnlineAPI, getDriverProfileAPI,goOfflineAPI,updateDriverProfileAPI, updateLocationAPI } from "../api/driver.api";
-
-
+import { goOnlineAPI, getDriverProfileAPI, goOfflineAPI, updateDriverProfileAPI, updateLocationAPI } from "../api/driver.api";
 
 export const getDriverProfile = async () => {
   const res = await getDriverProfileAPI();
@@ -12,17 +10,17 @@ export const updateDriverProfile = async (data) => {
   return res.data;
 };
 
-export const goOnlineService = async (token, coordinates) => {
-    const res = await goOnlineAPI(token, coordinates);
+export const goOnlineService = async (driverId, coordinates) => {
+    const res = await goOnlineAPI(coordinates);
     return res.data;
 };
 
-export const goOfflineService = async (token) => {
-    const res = await goOfflineAPI(token);
+export const goOfflineService = async () => {
+    const res = await goOfflineAPI();
     return res.data;
 };
 
-export const updateLocationService = async (lat, lng, token) => {
-    const res = await updateLocationAPI(lat, lng, token);
+export const updateLocationService = async (lng, lat) => {
+    const res = await updateLocationAPI(lng, lat);
     return res.data;
 };

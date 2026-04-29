@@ -10,8 +10,8 @@ export const getNearbyRidesService = async (lat, lng) => {
     return res.data;
 };
 
-export const acceptRideService = async () => {
-    const res = await acceptRideAPI();
+export const acceptRideService = async (rideId) => {
+    const res = await acceptRideAPI(rideId);
     return res.data;
 };
 

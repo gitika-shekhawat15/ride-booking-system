@@ -6,8 +6,10 @@ import { createRideService,
 
         } from "../services/ride.service.js";
 import rideModel from "../models/ride.model.js";
+import AppError from "../utils/AppError.js";
+import mongoose from "mongoose";
 
-export const createRide = async (req, res) => {
+export const createRide = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
@@ -17,6 +19,9 @@ export const createRide = async (req, res) => {
       vehicleType,
     } = req.body;
 
+     if (!pickupLocation || !dropLocation) {
+      return next(new AppError("Pickup and drop required", 400));
+    }
     const ride = await createRideService(
       userId,
       pickupLocation,
@@ -30,18 +35,20 @@ export const createRide = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({
-      message: "Failed to create ride",
-    });
+    next(error);
   }
 };
 
 
-export const acceptRide = async (req, res) => {
+export const acceptRide = async (req, res, next) => {
   try {
     const driverId = req.user._id;
+    const {rideId} = req.body;
+    if (!rideId) {
+      return next(new AppError("rideId is required", 400));
+  }
 
-    const ride = await acceptRideService(driverId);
+    const ride = await acceptRideService(driverId, rideId);
 
     return res.status(200).json({
       message: "Ride accepted successfully",
@@ -49,29 +56,14 @@ export const acceptRide = async (req, res) => {
     });
 
   } catch (error) {
+    next(error);
 
-    if (error.message === "NO_PENDING_REQUEST") {
-      return res.status(400).json({
-        message: "No active ride request for this driver",
-      });
-    }
-
-    if (error.message === "RIDE_ALREADY_ASSIGNED") {
-      return res.status(409).json({
-        message: "Ride already assigned to another driver",
-      });
-    }
-
-    return res.status(500).json({
-      message: "Failed to accept ride",
-      error: error.message,
-    });
   }
 };
 
 
 
-export const updateRideStatus = async (req, res) => {
+export const updateRideStatus = async (req, res, next) => {
     try {
         const {rideId } = req.params;
         const {status} = req.body;
@@ -84,50 +76,64 @@ export const updateRideStatus = async (req, res) => {
     });
 
    return res.status(200).json({
+      success: true,
       message: "Ride status updated successfully",
       ride,
     });
 
     } catch (error) {
-    return res.status(400).json({
-      message: error.message,
-    });
+    next(error);
   }
 }
 
-export const getRideStatus = async (req, res) => {
-    try {
-        const ride = await rideModel.findById(req.params.rideId);
-        if(!ride) return res.status(404).json({ message: "Ride not found" });
-        return res.status(200).json({ status: ride.status, ride });
-    } catch(err) {
-        return res.status(500).json({ message: err.message });
+export const getRideStatus = async (req, res, next) => {
+
+if (!mongoose.Types.ObjectId.isValid(req.params.rideId)) {
+  return next(new AppError("Invalid ride ID", 400));
+}
+  try {
+    const ride = await rideModel.findById(req.params.rideId);
+
+    if (!ride) {
+      return next(new AppError("Ride not found", 404));
     }
+
+    res.status(200).json({
+      success: true,
+      message: "Ride status fetched",
+      status: ride.status,
+      ride,
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const getLiveRideLocation = async(req, res)=> {
-    try {
-        const {id: rideId} = req.params;
-        const riderId = req.user._id;
+export const getLiveRideLocation = async (req, res, next) => {
+  try {
+    const { rideId } = req.params;
+    const riderId = req.user._id;
 
-        const data = await getLiveRideLocationService(rideId, riderId);
+    const data = await getLiveRideLocationService(rideId, riderId);
 
-        return res.status(200).json(data);
-        
-    
-    } catch (error) {
-        return res.status(400).json({ message: error.message });
+    res.status(200).json({
+      success: true,
+      message: "Live location fetched",
+      ...data,
+    });
 
-    }
+  } catch (error) {
+    next(error);
+  }
+};
 
-}
-
-export const getNearbyRides = async (req, res) => {
+export const getNearbyRides = async (req, res, next) => {
     try {
         const {lng, lat} = req.query;
 
         if (!lng || !lat) {
-            return res.status(400).json({ message: "Longitude and Latitude are required" });
+           return next(new AppError("Longitude and Latitude are required", 400));
         }
 
         const rides = await getNearbyRidesService(
@@ -135,12 +141,14 @@ export const getNearbyRides = async (req, res) => {
             Number(lat)
         );
 
-        return res.status(200).json({
-            count: rides.length,
-            rides,
+         res.status(200).json({
+          success: true,
+          message: "Nearby rides fetched",
+          count: rides.length,
+          rides,
         });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        next(error);
     }
 
 };

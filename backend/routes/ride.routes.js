@@ -25,17 +25,15 @@ router.post("/",
 router.post("/accept",
     auth,
     requireDriver,
-    acceptRide,
+    acceptRide
 );
 
-// ✅ Static routes pehle
 router.get("/nearby",
     auth,
     requireDriver,
     getNearbyRides
 );
 
-// ✅ Dynamic routes baad mein
 router.get("/:rideId/status",
     auth,
     getRideStatus
@@ -43,10 +41,11 @@ router.get("/:rideId/status",
 
 router.patch("/:rideId/status",
     auth,
+    requireDriver,
     updateRideStatus,
 );
 
-router.get("/:id/live",
+router.get("/:rideId/live",
     auth,
     requireRider,
     getLiveRideLocation

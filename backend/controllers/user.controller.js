@@ -1,7 +1,8 @@
 import userModel from "../models/user.model.js";
 import { registerUserService, loginUserService } from "../services/user.service.js";
+import AppError from "../utils/AppError.js";
 
-export const registerUser = async (req, res) => {
+export const registerUser = async (req, res, next) => {
     try {
         const user = await registerUserService(req.body);
         const token = user.generateAuthToken(); 
@@ -16,14 +17,12 @@ export const registerUser = async (req, res) => {
         })
         
     } catch (error) {
-        res.status(500).json({ 
-            message: "Something went wrong",
-            error: error.message
-        });
+        next(error);
+    
     }
 }
 
-export const loginUser = async (req, res) => {
+export const loginUser = async (req, res, next) => {
     try {
         const {email, password} = req.body
         
@@ -43,27 +42,19 @@ export const loginUser = async (req, res) => {
 
         
     } catch (error) {
-        if (error.message === "Invalid credentials") {
-      return res.status(401).json({
-        message: error.message,
-      });
-    }
-
-    return res.status(500).json({
-      message: "Something went wrong",
-    });
+        next(error);
         
     }
 }
 
 
-export const getMyProfile = async (req, res) => {
+export const getMyProfile = async (req, res, next) => {
     try {
         const userId = req.user._id;
         const user = await userModel.findById(userId).select("-password");
 
-        if(!user) {
-            return res.status(404).json({ message: "User not found"});
+        if (!user) {
+        return next(new AppError("User not found", 404));
         }
 
         res.status(200).json({
@@ -73,14 +64,11 @@ export const getMyProfile = async (req, res) => {
         })
 
     } catch (error) {
-        res.status(500).json({
-            message: "Something went wrong!",
-            error: error.message,
-        })
+        next(error);
     }
 }
 
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res, next) => {
   try {
     const allowedFields = ["fullname"];
     const updateData = {};
@@ -103,9 +91,6 @@ export const updateProfile = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
-      message: "Something went wrong!",
-      error: error.message,
-    });
+    next(error);  
   }
 };

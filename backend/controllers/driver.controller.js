@@ -1,8 +1,9 @@
 import { registerDriverService, updateDriverLocationService, goOnlineService } from "../services/driver.service.js";
 import driverProfile from "../models/driver.model.js";
 import userModel from "../models/user.model.js";
+import AppError from "../utils/AppError.js";
 
-export const registerDriver = async(req, res) => {
+export const registerDriver = async(req, res,next) => {
     try {
         const userId = req.user._id;
         
@@ -18,22 +19,23 @@ export const registerDriver = async(req, res) => {
         });
 
     } catch(err) {
-        res.status(500).json({ message: err.message });
+        next(err);
     }
 }
 
-export const getMyProfile = async (req, res) => {
+export const getMyProfile = async (req, res,next) => {
     try {
         const userId = req.user._id;
 
         const user = await userModel.findById(userId).select("-password");
         if (!user) {
-            return res.status(404).json({ message: "Driver not found" });
+          return next(new AppError("User not found", 404));
         }
 
-        // ✅ vehicle details bhi fetch karo
         const driver = await driverProfile.findOne({ userId }).select("-__v");
-
+          if (!driver) {
+          return next(new AppError("Driver profile not found", 404));
+}
         res.status(200).json({
             message: "Driver profile fetched successfully",
             user,
@@ -41,10 +43,10 @@ export const getMyProfile = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ message: "Something went wrong!", error: error.message });
+      next(error);
     }
 }
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res,next) => {
   try {
     const allowedFields = ["fullname"];
     const updateData = {};
@@ -67,24 +69,36 @@ export const updateProfile = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong!", error: error.message });
+    next(error);
   }
 };
 
-export const goOffline = async (req, res) => {
-    try {
-        const driverId = req.user._id;
-        await driverProfile.findOneAndUpdate(
-            { userId: driverId },
-            { isAvailable: false }
-        );
-        return res.status(200).json({ message: "Driver is now OFFLINE" });
-    } catch(error) {
-        return res.status(500).json({ message: error.message });
+export const goOffline = async (req, res, next) => {
+  try {
+    const driverId = req.user._id;
+
+    const driver = await driverProfile.findOneAndUpdate(
+      { userId: driverId },
+      { isAvailable: false },
+      { new: true }
+    );
+
+    if (!driver) {
+      return next(new AppError("Driver not found", 404));
     }
+
+    res.status(200).json({
+      success: true,
+      message: "Driver is now OFFLINE",
+      driver,
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const updateDriverLocation = async(req, res) => {
+export const updateDriverLocation = async(req, res, next) => {
   try {
     const { lat, lng } = req.body;
 
@@ -102,34 +116,26 @@ export const updateDriverLocation = async(req, res) => {
       location,
     });
   } catch (error) {
-    return res.status(400).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
     
 
-export const goOnline = async (req, res) => {
+export const goOnline = async (req, res, next) => {
   try {
     const driverId = req.user._id;
     const { coordinates } = req.body; 
 
     const driver = await goOnlineService(driverId, coordinates);
 
-    return res.status(200).json({
+    res.status(200).json({
+     success: true,
       message: "Driver is now ONLINE",
       driver,
-    });
+      });
 
   } catch (error) {
-    if (error.message === "DRIVER_NOT_FOUND") {
-      return res.status(404).json({ message: "Driver not found" });
-    }
-
-    return res.status(500).json({
-      message: "Failed to go online",
-      error: error.message,
-    });
+    next(error);;
   }
 };
 

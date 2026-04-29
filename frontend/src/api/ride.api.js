@@ -1,35 +1,22 @@
 import api from "./axios";
 
-const getAuthHeader = () => ({
-    headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-    }
-});
 
-// Rider - ride create 
 export const createRideAPI = (userId, pickupLocation, dropLocation, vehicleType) => {
-    return api.post("/rides", { pickupLocation, dropLocation, vehicleType }, getAuthHeader());
+    return api.post("/rides", { pickupLocation, dropLocation, vehicleType }); // ← clean
 };
 
-// Driver - nearby rides 
 export const getNearbyRidesAPI = (lat, lng) => {
-    return api.get(`/rides/nearby?lat=${lat}&lng=${lng}`, getAuthHeader());
+    return api.get(`/rides/nearby?lat=${lat}&lng=${lng}`);
 };
 
-// Driver - ride accept 
-export const acceptRideAPI = () => {
-    return api.post("/rides/accept", {}, getAuthHeader());
+export const acceptRideAPI = (rideId) => {
+    return api.post("/rides/accept", { rideId });
 };
 
-//status update 
 export const updateRideStatusAPI = (rideId, status) => {
-    return api.patch(`rides/${rideId}/status`, 
-        { status }
-     , getAuthHeader());
+    return api.patch(`/rides/${rideId}/status`, { status });
 };
 
-// get status
-export const getRideStatusAPI = (rideId, status)=> {
-    return api.get(`rides/${rideId}/status`, {status})
-
-}
+export const getRideStatusAPI = (rideId) => {
+    return api.get(`/rides/${rideId}/status`);
+};

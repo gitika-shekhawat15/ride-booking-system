@@ -4,11 +4,13 @@ import { loginUser } from "../../services/auth.service.js";
 import { useState } from "react";
 import VideoBackground from "../../components/VideoBackground.jsx";
 import { validateLogin} from "../../utils/auth.validators.js";
+import Button from "../../components/ui/Button.jsx";
 
 function Login() {
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
   const { name, value } = e.target;
@@ -25,10 +27,11 @@ function Login() {
         setErrors(validationErrors);
       return;
     }
+    setLoading(true);
     try {
       const res = await loginUser({ email: loginData.email, password: loginData.password });
       console.log("User logged in successfully", res);
-      localStorage.clear();
+      localStorage.removeItem("token"); ;
       localStorage.setItem("token", res.token);
       localStorage.setItem("role", res.user.role);
       if (res.user.role === "driver") {
@@ -41,7 +44,9 @@ function Login() {
 
     if (backendError) {
       setErrors({ general: backendError });
-    }
+    } 
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,14 +127,16 @@ function Login() {
         )}
 
 
-          <button type="submit" className="
+          <Button
+            onClick={handleSubmit}
+            loading={loading} className="
             bg-[#D6FF2F] text-black font-bold
             py-2.5 md:py-3 rounded-xl text-sm md:text-base mt-1
             hover:-translate-y-0.5 hover:shadow-[0_6px_20px_#D6FF2F50]
             active:translate-y-0 active:scale-95 transition-all duration-200
           ">
             Sign In
-          </button>
+          </Button>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-white/20" />
@@ -137,16 +144,6 @@ function Login() {
             <div className="flex-1 h-px bg-white/20" />
           </div>
 
-          <button type="button" className="
-            bg-white/10 backdrop-blur-md border border-white/20
-            py-2.5 md:py-3 rounded-xl text-white text-xs md:text-sm font-medium
-            flex items-center justify-center gap-2
-            hover:bg-white/20 hover:-translate-y-0.5
-            active:translate-y-0 transition-all duration-200
-          ">
-            <img src="https://www.google.com/favicon.ico" className="w-3.5 h-3.5" />
-            Continue with Google
-          </button>
 
         </form>
 

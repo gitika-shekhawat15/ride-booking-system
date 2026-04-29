@@ -55,3 +55,18 @@ export const updateDriverLocationValidator = [
     .isFloat({ min: -180, max: 180 })
     .withMessage("Valid longitude required"),
 ];
+export const goOnlineValidator = [
+  body("coordinates")
+    .notEmpty().withMessage("Coordinates are required")
+    .bail()
+    .isArray({ min: 2, max: 2 })
+    .withMessage("Coordinates must be [lng, lat]"),
+
+  body("coordinates.0")
+    .isFloat()
+    .withMessage("Longitude must be a number"),
+
+  body("coordinates.1")
+    .isFloat()
+    .withMessage("Latitude must be a number"),
+];

@@ -20,13 +20,18 @@ export default function RideScreen() {
   const [step, setStep] = useState("OPTIONS");
   const [selectedRide, setSelectedRide] = useState(null);
   const [rideId, setRideId] = useState(null);
+  const [rideData, setRideData] = useState(null);
   const [driverLocation, setDriverLocation] = useState(null);
   const [myLocation, setMyLocation] = useState({ lat: null, lng: null });
   const [driverInfo, setDriverInfo] = useState(null);
+  const [isBooking, setIsBooking] = useState(false);
+
 
   const handleConfirm = async () => {
+    if (isBooking) return; 
+    setIsBooking(true);
   try {
-    const { pickupCoordinates, dropCoordinates } = state; // ✅ sirf state se lo
+    const { pickupCoordinates, dropCoordinates } = state;
 
     const pickupLocation = { type: "Point", coordinates: pickupCoordinates };
     const dropLocation = { type: "Point", coordinates: dropCoordinates };
@@ -38,11 +43,14 @@ export default function RideScreen() {
       pickupLocation,
       dropLocation, 
       selectedRide.toLowerCase()
+
     );
-    setRideId(res._id);
+     setRideId(res.ride._id);
+    setRideData(res.ride);
     setStep("SEARCHING");
   } catch (err) {
     console.log("Error:", err);
+    setIsBooking(false)
   }
 };
 
@@ -105,14 +113,14 @@ export default function RideScreen() {
   // Reusable step content
   const StepContent = () => (
     <>
-      {step === "OPTIONS" && <RideOptions selectedRide={selectedRide} setSelectedRide={setSelectedRide} onConfirm={handleConfirm} />}
+      {step === "OPTIONS" && <RideOptions selectedRide={selectedRide} setSelectedRide={setSelectedRide} onConfirm={handleConfirm} isBooking={isBooking} />}
       {step === "SEARCHING" && <SearchingRide selectedRide={selectedRide} />}
       {step === "NO_DRIVERS" && <NoDrivers onRetry={() => setStep("OPTIONS")} />}
       {step === "DRIVER_BUSY" && <DriverBusy onRetry={() => setStep("OPTIONS")} />}
-      {step === "ACCEPTED" && <RideAccepted selectedRide={selectedRide} driverInfo={driverInfo} />}
+      {step === "ACCEPTED" && <RideAccepted selectedRide={selectedRide} driverInfo={driverInfo} fare={rideData?.fare}/>}
       {step === "DRIVER_ARRIVING" && <DriverArriving selectedRide={selectedRide} driverInfo={driverInfo} />}
       {step === "TRIP_STARTED" && <TripStarted selectedRide={selectedRide} driverInfo={driverInfo} />}
-      {step === "TRIP_COMPLETED" && <TripCompleted selectedRide={selectedRide} driverInfo={driverInfo} />}
+      {step === "TRIP_COMPLETED" && <TripCompleted selectedRide={selectedRide} driverInfo={driverInfo}  fare={rideData?.fare}/>}
     </>
   );
 

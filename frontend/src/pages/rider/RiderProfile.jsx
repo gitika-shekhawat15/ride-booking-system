@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ImageBackground from "../../components/ImageBackground";
 import {getProfile, updateProfile} from "../../services/auth.service";
+import Button from "../../components/ui/Button";
 
 function RiderProfile() {
   const navigate = useNavigate();
+  const [saveLoading, setSaveLoading] = useState(false);
  
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -70,6 +72,7 @@ function RiderProfile() {
       setErrors(errs);
       return;
     }
+    setSaveLoading(true);
  
     try {
       const res = await updateProfile({
@@ -92,6 +95,8 @@ function RiderProfile() {
       setTimeout(() => setShowToast(false), 2500);
     } catch (error) {
       console.error("Failed to update profile", error);
+    } finally {
+      setSaveLoading(false);
     }
   };
  
@@ -242,12 +247,13 @@ className="pr-1 hsc"
         </div>
 
         {/* Save Button */}
-        <button
+        <Button
           onClick={handleSave}
+          loading={saveLoading}
           className="w-full bg-[#D6FF2F] text-black font-bold py-3 rounded-xl text-sm hover:-translate-y-0.5 hover:shadow-[0_6px_20px_#D6FF2F40] active:scale-95 transition-all duration-200 mb-2.5"
         >
           Save changes
-        </button>
+        </Button>
 
         {/* Apply for Driver */}
         <button

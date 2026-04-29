@@ -6,13 +6,13 @@ export const createUserValidator = [
     .notEmpty()
     .withMessage("Firstname is required")
     .bail()
-    .customSanitizer(v => v.trim().charAt(0).toUpperCase() + v.trim().slice(1).toLowerCase()), // ✅ added
+    .customSanitizer(v => v.trim().charAt(0).toUpperCase() + v.trim().slice(1).toLowerCase()),
 
     body("fullname.lastname")
     .notEmpty()
     .withMessage("Lastname is required")
     .bail()
-    .customSanitizer(v => v.trim().charAt(0).toUpperCase() + v.trim().slice(1).toLowerCase()), // ✅ added
+    .customSanitizer(v => v.trim().charAt(0).toUpperCase() + v.trim().slice(1).toLowerCase()), 
     
     body("email")
     .notEmpty().withMessage("Email is required")

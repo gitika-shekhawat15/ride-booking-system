@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import ImageBackground from "../../components/ImageBackground.jsx";
 import { validateDriver } from "../../utils/driver.validators.js";
+import Button from "../../components/ui/Button.jsx";
 
 export default function BecomeDriver() {
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [driverData, setDriverData] = useState({
     vehicleType: "",
     vehicleNumber: "",
@@ -32,6 +34,7 @@ export default function BecomeDriver() {
     setErrors(validationErrors);
     return;
   }
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
       const payload = {
@@ -48,7 +51,10 @@ export default function BecomeDriver() {
     } catch (error) {
       setErrors({
       general: error.response?.data?.message || "Something went wrong",
-    });    }
+    });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = `
@@ -184,14 +190,14 @@ export default function BecomeDriver() {
     </p>
   )}
 
-          <button type="submit" className="
+          <Button onClick={handleSubmit} loading={loading} className="
             bg-[#D6FF2F] text-black font-bold
             py-2.5 md:py-3 rounded-xl text-sm md:text-base mt-1
             hover:-translate-y-0.5 hover:shadow-[0_6px_20px_#D6FF2F50]
             active:translate-y-0 active:scale-95 transition-all duration-200
           ">
             Submit Application
-          </button>
+          </Button>
 
         </form>
 

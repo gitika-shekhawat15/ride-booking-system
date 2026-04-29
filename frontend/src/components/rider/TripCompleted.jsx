@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-export default function TripCompleted({ selectedRide, driverInfo }) {
+export default function TripCompleted({ selectedRide, driverInfo, fare }) {
   const navigate = useNavigate();
 
   return (
@@ -40,7 +40,7 @@ export default function TripCompleted({ selectedRide, driverInfo }) {
         ">
           <p className="text-xs text-white/50 mb-1">Total Fare</p>
           <p className="text-3xl font-bold text-[#D6FF2F]">
-            ₹{driverInfo?.fare || 120}
+            ₹{fare || driverInfo?.fare || "—"}
           </p>
         </div>
 
@@ -79,7 +79,6 @@ export default function TripCompleted({ selectedRide, driverInfo }) {
 
         </div>
 
-        {/* CTA */}
         <button
           onClick={() => navigate("/home")}
           className="
