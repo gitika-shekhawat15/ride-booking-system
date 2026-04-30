@@ -127,8 +127,19 @@ export default function RideScreen() {
     <>
       {step === "OPTIONS" && <RideOptions selectedRide={selectedRide} setSelectedRide={setSelectedRide} onConfirm={handleConfirm} isBooking={isBooking} />}
       {step === "SEARCHING" && <SearchingRide selectedRide={selectedRide} />}
-      {step === "NO_DRIVERS" && <NoDrivers onRetry={() => setStep("OPTIONS")} />}
-      {step === "DRIVER_BUSY" && <DriverBusy onRetry={() => setStep("OPTIONS")} />}
+      {step === "NO_DRIVERS" && <NoDrivers 
+      onRetry={() => {
+      setIsBooking(false);
+      setSelectedRide(null); 
+      setStep("OPTIONS");
+    }}
+      />}
+      {step === "DRIVER_BUSY" && <DriverBusy 
+      onRetry={() => {
+      setIsBooking(false);
+      setStep("OPTIONS");
+    }}
+         />}
       {step === "ACCEPTED" && <RideAccepted selectedRide={selectedRide} driverInfo={driverInfo} fare={rideData?.fare}/>}
       {step === "DRIVER_ARRIVING" && <DriverArriving selectedRide={selectedRide} driverInfo={driverInfo} />}
       {step === "TRIP_STARTED" && <TripStarted selectedRide={selectedRide} driverInfo={driverInfo} />}
