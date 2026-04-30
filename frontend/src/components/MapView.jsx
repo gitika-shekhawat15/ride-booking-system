@@ -109,8 +109,8 @@ export default function MapView({ lat, lng, driverLocation, pickupLocation, drop
       className="h-full w-full"
     >
       <TileLayer
-        url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      attribution='&copy; OpenStreetMap contributors'
       />
       {/* Recenter on driver */}
       <RecenterDriver driverLocation={driverLocation} />
